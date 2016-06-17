@@ -2214,8 +2214,7 @@ struct CompileAssert {
 //
 //     GTEST_COMPILE_ASSERT_(5 > 0, some_message);
 //
-//   (They seem to think the "
->" in "5 > 0" marks the end of the
+//   (They seem to think the ">" in "5 > 0" marks the end of the
 //   template argument list.)
 //
 // - The array size is (bool(expr) ? 1 : -1), instead of simply
