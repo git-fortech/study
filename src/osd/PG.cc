@@ -8698,10 +8698,21 @@ void PG::RecoveryState::start_handle(RecoveryCtx *new_ctx)
     {
         if (messages_pending_flush)
         {
+            //Yuanguo: construct a new RecoveryCtx object (say obj1): 
+            //3 members of obj1 are initialized by messages_pending_flush (query_map, info_map, notify_list)
+            //while others are initialized by *new_ctx;
+            //Then construct inner object (type is RecoveryCtx) of 'rctx' by copying obj1;
+            //Then destruct obj1;
             rctx = RecoveryCtx(*messages_pending_flush, *new_ctx);
         }
         else
         {
+            //Yuanguo: the type of 'rctx' is boost::optional<RecoveryCtx>, so this statement
+            //constructs inner object (type is RecoveryCtx) of 'rctx' by copying '*new_ctx'
+            //(copy constructor). 
+            //Because RecoveryCtx's members are pointers and the copy constructor is shallow, so rctx 
+            //and new_ctx's member pointers point to the same set of objects (query_map, info_map,
+            //notify_list, on_applied, on_safe, transaction, handle and etc);
             rctx = *new_ctx;
         }
         rctx->start_time = ceph_clock_now(pg->cct);
@@ -8721,6 +8732,14 @@ void PG::RecoveryState::clear_blocked_outgoing()
 {
     assert(orig_ctx);
     assert(rctx);
+    //Yuanguo: this leaves messages_pending_flush uninitialized, it seems like a NULL pointer, because 
+    //no BufferedRecoveryMessages object is constructed;  it is the same like:
+    //     messages_pending_flush = boost::none;
+    //
+    //Note it's different from the following statement:
+    //     messages_pending_flush = BufferedRecoveryMessages;
+    //where a BufferedRecoveryMessages object (say obj1) is constructed, then an inner object (say obj2) 
+    //of messages_pending_flush is constructed by copying obj1 (via copy constructor), then obj1 is destructed;
     messages_pending_flush = boost::optional<BufferedRecoveryMessages>();
 }
 
