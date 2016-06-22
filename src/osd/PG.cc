@@ -8763,6 +8763,8 @@ void PG::RecoveryState::end_handle()
     }
 
     machine.event_count++;
+
+    //Yuanguo: no RecoveryCtx object is constructed here, so this leaves rctx uninitialized;
     rctx = boost::optional<RecoveryCtx>();
     orig_ctx = NULL;
 }
